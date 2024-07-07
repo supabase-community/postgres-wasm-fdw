@@ -1,0 +1,15 @@
+.DS_Store
+.idea/
+target/
+*.iml
+**/*.rs.bk
+*.o
+*.so
+*.a
+*.swp
+*.log
+site/
+.bash_history
+.config/
+cmake*/
+.direnv
