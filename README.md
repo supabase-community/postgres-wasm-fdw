@@ -1,10 +1,37 @@
-# Wasm Foreign Data Wrapper Example
+# Postgres Wasm FDW [Template]
 
-This repo is an example WebAssembly Foreign Data Wrapper (FDW) project. This project demostrates how to use [Wrappers Wasm FDW framework](https://github.com/supabase/wrappers/tree/main/wrappers/src/fdw/wasm_fdw) to develop a foreign data wrapper which reads the [realtime GitHub events](https://api.github.com/events) into Postgres database.
+This project demostrates how to create a Postgres Foreign Data Wrapper with Wasm, using the [Wasm FDW framework](https://github.com/supabase/wrappers/tree/main/wrappers/src/fdw/wasm_fdw). 
 
-## How to use this project
+This example reads the [realtime GitHub events](https://api.github.com/events) into a Postgres database. 
 
-You can use this example as the start point to develop your own foreign data wrapper. Firstly, fork this project to your own GitHub account by clicking the `Fork` button on top of this page, and then clone your forked project to local.
+
+## Project Structure
+
+```bash
+├── src
+│   └── lib.rs              # The package source code. We will implement the FDW logic, in this file.
+├── supabase-wrappers-wit   # The Wasm Interface Type provided by Supabase. See below for a detailed description.
+│   ├── http.wit
+│   ├── jwt.wit
+│   ├── routines.wit
+│   ├── stats.wit
+│   ├── time.wit
+│   ├── types.wit
+│   ├── utils.wit
+│   └── world.wit
+└── wit                     # The WIT interface this project will use to build the Wasm package.
+    └── world.wit
+```
+
+A [Wasm Interface Type](https://github.com/bytecodealliance/wit-bindgen) (WIT) defines the interfaces between the Wasm FDW (guest) and the Wasm runtime (host). For example, the `http.wit` defines the HTTP related types and functions can be used in the guest, and the `routines.wit` defines the functions the guest needs to implement.
+
+## Getting started
+
+You can use this example as the start point to develop your own FDW. 
+
+### Fork
+
+Fork this project to your own GitHub account by clicking the `Fork` button on top of this page, and then clone your forked project to your local machine
 
 ### Install prerequisites
 
@@ -21,20 +48,6 @@ This project is a normal Rust library project, so we will assume you have instal
    ```bash
    cargo install cargo-component
    ```
-
-### Project folder structure
-
-- src/lib.rs
-
-  The package source code, we will implement the `Guest` trait, which contains the FDW logic, in this file.
-
-- supabase-wrappers-wit/
-
-  The [Wasm Interface Type](https://github.com/bytecodealliance/wit-bindgen) (WIT) provided by Supabase, it defines the interfaces between the Wasm FDW (guest) and the Wasm runtime (host). For example, the `http.wit` defines the HTTP related types and functions can be used in the guest, and the `routines.wit` defines the functions the guest needs to implement.
-
-- wit/
-
-  The WIT interface this project will use to build the Wasm package.
 
 ### Implement the foreign data wrapper logic
 
@@ -66,9 +79,8 @@ pub trait Guest {
 }
 ```
 
-Implement those functions is smiliar to implement a native Wrappers FDW, check out [Supabase Wrappers Framework](https://docs.rs/supabase-wrappers/0.1.18/supabase_wrappers/) for more details.
 
-For this example project, we can check out the details in the `src/lib.rs` file to see how to read GitHub Events endpoint. Note this package will be built to `wasm32-unknown-unknown` target, which is a limited execution environment and lack of most stdlib functionalities such as file and socket IO. Also note that many 3rd parties libs on crates.io are not supporting the `wasm32-unknown-unknown` target, so choose dependencies carefully.
+Check out the details in the `src/lib.rs` file to see how to read GitHub Events endpoint. This package will be built to `wasm32-unknown-unknown` target, which is a limited execution environment and lack of most stdlib functionalities such as file and socket IO. Also note that many 3rd parties libs on crates.io are not supporting the `wasm32-unknown-unknown` target, so choose your dependencies carefully.
 
 ### Build the Wasm FDW package
 
@@ -80,15 +92,23 @@ cargo component build --release --target wasm32-unknown-unknown
 
 This will build the Wasm file in `target/wasm32-unknown-unknown/release/wasm_fdw_example.wasm`. This is the Wasm FDW package can be used on Supabase platform.
 
-## Use this example foreign data wrapper on Supabase platform
+## Use with Supabase
 
-To use our own Wasm FDW on Supabase platform, make sure the Wrappers extension version is `>=0.4.1`. Go to `SQL Editor` in Supabase Studio and run below query to check its version:
+You can use your Wasm FDW on the Supabase platform as long as the Wrappers extension version is `>=0.4.1`.
+
+### Checking Wrappers version
+
+Go to `SQL Editor` in Supabase Studio and run below query to check its version:
 
 ```sql
-SELECT * FROM pg_available_extension_versions WHERE name = 'wrappers';
+select * 
+from pg_available_extension_versions 
+where name = 'wrappers';
 ```
 
-And then install the Wrappers extension and create Wasm foreign data wrapper:
+### Installing your Wasm FDW
+
+Install the Wrappers extension and initialize the Wasm FDW:
 
 ```sql
 create extension if not exists wrappers with schema extensions;
@@ -147,7 +167,7 @@ limit 5;
 
 :clap: :clap: Congratulations! You have built your first Wasm FDW.
 
-## Other considerations
+## Considerations
 
 ### Version compatibility
 
@@ -163,18 +183,18 @@ impl Guest for ExampleFdw {
 
 Both guest and host are using [Semantic Versioning](https://docs.rs/semver/latest/semver/enum.Op.html). The above code means the guest is compatible with host version greater or equal `0.1.0` but less than `0.2.0`. If the version isn't comatible, this Wasm FDW cannot run on that version of host.
 
-All the available host versions are list in here: https://github.com/supabase/wrappers/blob/main/wrappers/src/fdw/wasm_fdw/README.md. When you develop your own Wasm FDW, always choose compatible host version properly.
+All the available host versions are listed here: https://github.com/supabase/wrappers/blob/main/wrappers/src/fdw/wasm_fdw/README.md. When you develop your own Wasm FDW, always choose compatible host version properly.
 
 ### Security
 
 > [!WARNING]
-> Never use untrusted Wasm FDW on your database, as malicious Wasm FDW may cause foreign table data breach.
+> Never use untrusted Wasm FDW on your database.
 
-Although we have implemented intensive security approaches and limited the Wasm runtime environment to minimal, the data breach can still happen if you used Wasm FDW from untrusted source. Always use official sources, like [Supabase Wasm FDW](https://github.com/supabase/wrappers/tree/main/wasm-wrappers), or the sources you have full visibility and control.
+Although we have implemented security measures and limited the Wasm runtime environment to a minimal interface, ultimately you are responsible for your data. Never install a Wasm FDW from untrusted source. Always use official sources, like [Supabase Wasm FDW](https://github.com/supabase/wrappers/tree/main/wasm-wrappers), or sources which you have full visibility and control.
 
 ### Performance
 
-Because the Wasm package will be dynamically downloaded and loaded to run on Postgres, we need to make sure the Wasm FDW small and performant. We will always build this project into `release` mode with profile specified in the `Cargo.toml` file:
+The Wasm package will be dynamically downloaded and loaded to run on Postgres, and so you should make sure the Wasm FDW is small to improve performance. Always build your project in `release` mode using the profile specified in the `Cargo.toml` file:
 
 ```toml
 [profile.release]
@@ -189,11 +209,12 @@ cargo component build --release --target wasm32-unknown-unknown
 
 ### Automation
 
-If you host the project source code on GitHub, the building and release process can be automated, take a look at the `.github/workflow/release_wasm_fdw.yml` file to see an example.
+If you host source code on GitHub, the building and release process can be automated, take a look at the `.github/workflow/release_wasm_fdw.yml` file to see an example of CI workflow.
 
-## More Wasm foreign data wrapper projects
 
-There are some other Wasm foreign data wrapper projects developed by Supabase team, you can check them out to see more examples.
+## Other examples
 
-- [Snowflake Wasm foreign data wrapper](https://github.com/supabase/wrappers/tree/main/wasm-wrappers/fdw/snowflake_fdw)
-- [Paddle Wasm foreign data wrapper](https://github.com/supabase/wrappers/tree/main/wasm-wrappers/fdw/paddle_fdw)
+Some other Wasm foreign data wrapper projects developed by Supabase team:
+
+- [Snowflake Wasm FDW](https://github.com/supabase/wrappers/tree/main/wasm-wrappers/fdw/snowflake_fdw)
+- [Paddle Wasm FDW](https://github.com/supabase/wrappers/tree/main/wasm-wrappers/fdw/paddle_fdw)
