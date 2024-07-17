@@ -129,7 +129,7 @@ create server example_server
     fdw_package_url 'https://github.com/supabase-community/wasm-fdw-example/releases/download/v0.1.0/wasm_fdw_example.wasm',
     fdw_package_name 'my-company:example-fdw',
     fdw_package_version '0.1.0',
-    fdw_package_checksum '7d0b902440ac2ef1af85d09807145247f14d1d8fd4d700227e5a4d84c8145409',
+    fdw_package_checksum '67bbe7bfaebac6e8b844813121099558ffe5b9d8ac6fca8fe49c20181f50eba8',
     api_url 'https://api.github.com'
   );
 
@@ -164,6 +164,8 @@ from
   github.events
 limit 5;
 ```
+
+<img width="812" alt="image" src="https://github.com/user-attachments/assets/53e963cb-6e8f-44f8-9f2e-f0edc73ddf3a">
 
 :clap: :clap: Congratulations! You have built your first Wasm FDW.
 
