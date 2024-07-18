@@ -213,6 +213,11 @@ cargo component build --release --target wasm32-unknown-unknown
 
 If you host source code on GitHub, the building and release process can be automated, take a look at the `.github/workflow/release_wasm_fdw.yml` file to see an example of CI workflow.
 
+## Limitations
+
+The Wasm FDW currently only supports data sources which have HTTP(s) based JSON API, other sources such like TCP based DBMS or local files, are not supported.
+
+Another limitation is that many 3rd-party Rust libraries don't support `wasm32-unknown-unknown` target, we cannot use them in the Wasm FDW project.
 
 ## Other examples
 
