@@ -54,15 +54,18 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
+          PROJECT="${{ fromJson(steps.metadata.outputs.METADATA_JSON).packages[0].name }}"
           PACKAGE="${{ fromJson(steps.metadata.outputs.METADATA_JSON).packages[0].metadata.component.package }}"
           VERSION=`echo "${TAG}" | sed -E 's/v(.*)/\1/'`
           CHECKSUM=`head -1 checksum.txt | sed -E 's/^(.*) .*/\1/'`
+          echo "PROJECT=$PROJECT" >> "$GITHUB_OUTPUT"
           echo "PACKAGE=$PACKAGE" >> "$GITHUB_OUTPUT"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "CHECKSUM=$CHECKSUM" >> "$GITHUB_OUTPUT"
 
       - name: Create README.txt
         env:
+          PROJECT: ${{ steps.extract.outputs.PROJECT }}
           PACKAGE: ${{ steps.extract.outputs.PACKAGE }}
           VERSION: ${{ steps.extract.outputs.VERSION }}
           CHECKSUM: ${{ steps.extract.outputs.CHECKSUM }}
@@ -79,7 +82,7 @@ jobs:
           create server example_server
             foreign data wrapper wasm_wrapper
             options (
-              fdw_package_url 'https://github.com/supabase-community/wasm-fdw-example/releases/download/v${VERSION}/wasm_fdw_example.wasm',
+              fdw_package_url 'https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${PROJECT}.wasm',
               fdw_package_name '${PACKAGE}',
               fdw_package_version '${VERSION}',
               fdw_package_checksum '${CHECKSUM}',
