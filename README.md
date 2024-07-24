@@ -29,9 +29,9 @@ A [Wasm Interface Type](https://github.com/bytecodealliance/wit-bindgen) (WIT) d
 
 You can use this example as the start point to develop your own FDW. 
 
-### Fork
+### Create project
 
-Fork this project to your own GitHub account by clicking the `Fork` button on top of this page, and then clone your forked project to your local machine
+Use this template to create your project on GitHub by clicking the `Use this template` button on top right of this page, and then clone it to your local machine.
 
 ### Install prerequisites
 
@@ -91,6 +91,15 @@ cargo component build --release --target wasm32-unknown-unknown
 ```
 
 This will build the Wasm file in `target/wasm32-unknown-unknown/release/wasm_fdw_example.wasm`. This is the Wasm FDW package can be used on Supabase platform.
+
+### Release the Wasm FDW package
+
+To create a release of the Wasm FDW package, create a version tag and then push it. This will trigger a workflow to build the package and create a release on GitHub.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 ## Use with Supabase
 
