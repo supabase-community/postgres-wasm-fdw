@@ -155,7 +155,7 @@ Create foreign server and foreign table like below,
 create server example_server
   foreign data wrapper wasm_wrapper
   options (
-    -- change below fdw_pacakge_* options accordingly, find examples in the README.txt in your releases
+    -- change below fdw_package_* options accordingly, find examples in the README.txt in your releases
     fdw_package_url 'https://github.com/supabase-community/wasm-fdw-example/releases/download/v0.1.0/wasm_fdw_example.wasm',
     fdw_package_name 'my-company:example-fdw',
     fdw_package_version '0.1.0',
