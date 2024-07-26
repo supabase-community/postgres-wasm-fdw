@@ -4,6 +4,28 @@ This project demostrates how to create a Postgres Foreign Data Wrapper with Wasm
 
 This example reads the [realtime GitHub events](https://api.github.com/events) into a Postgres database. 
 
+## Table of contents
+
+- [Project Structure](#project-structure)
+- [Getting started](#getting-started)
+  - [Create project](#create-project)
+  - [Install prerequisites](#install-prerequisites)
+  - [Implement the foreign data wrapper logic](#implement-the-foreign-data-wrapper-logic)
+  - [Build the Wasm FDW package](#build-the-wasm-fdw-package)
+  - [Release the Wasm FDW package](#release-the-wasm-fdw-package)
+- [Use with Supabase](#use-with-supabase)
+  - [Checking Wrappers version](#checking-wrappers-version)
+  - [Installing your Wasm FDW](#installing-your-wasm-fdw)
+- [Local development](#local-development)
+  - [Set up](#set-up)
+  - [Use Wasm FDW on local Supabase](#use-wasm-fdw-on-local-supabase)
+- [Considerations](#considerations)
+  - [Version compatibility](#version-compatibility)
+  - [Security](#security)
+  - [Performance](#performance)
+  - [Automation](#automation)
+- [Limitations](#limitations)
+- [Other examples](#other-examples)
 
 ## Project Structure
 
@@ -94,7 +116,7 @@ This will build the Wasm file in `target/wasm32-unknown-unknown/release/wasm_fdw
 
 ### Release the Wasm FDW package
 
-To create a release of the Wasm FDW package, create a version tag and then push it. This will trigger a workflow to build the package and create a release on GitHub.
+To create a release of the Wasm FDW package, create a version tag and then push it. This will trigger a workflow to build the package and create a release on your repo.
 
 ```bash
 git tag v0.1.0
@@ -133,8 +155,7 @@ Create foreign server and foreign table like below,
 create server example_server
   foreign data wrapper wasm_wrapper
   options (
-    -- change below fdw_pacakge_* options accordingly
-    -- check available releases at https://github.com/supabase-community/wasm-fdw-example/releases
+    -- change below fdw_pacakge_* options accordingly, find examples in the README.txt in your releases
     fdw_package_url 'https://github.com/supabase-community/wasm-fdw-example/releases/download/v0.1.0/wasm_fdw_example.wasm',
     fdw_package_name 'my-company:example-fdw',
     fdw_package_version '0.1.0',
@@ -177,6 +198,75 @@ limit 5;
 <img width="812" alt="image" src="https://github.com/user-attachments/assets/53e963cb-6e8f-44f8-9f2e-f0edc73ddf3a">
 
 :clap: :clap: Congratulations! You have built your first Wasm FDW.
+
+## Local development
+
+### Set up
+
+To develop Wasm FDW locally with Supabase, [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started) is needed, check its docs for more installation details. After the CLI is installed, start the Supabase services:
+
+```bash
+supabase start
+```
+
+And then run the script to build the Wasm FDW package and copy it to Supabase database container:
+
+```bash
+./local-dev.sh
+```
+
+> [!TIP]
+> You can also use it with [cargo watch](https://crates.io/crates/cargo-watch): `cargo watch -s ./local-dev.sh`
+
+### Use Wasm FDW on local Supabase
+
+Visit SQL Editor at http://127.0.0.1:54323/project/default/sql/1, create foreign server and foreign table like below,
+
+```sql
+create server example_server
+  foreign data wrapper wasm_wrapper
+  options (
+    -- use 'file://' schema to reference the local wasm file in container
+    fdw_package_url 'file:///wasm_fdw_example.wasm',
+    fdw_package_name 'my-company:example-fdw',
+    fdw_package_version '0.1.0',
+    api_url 'https://api.github.com'
+  );
+
+create schema github;
+
+create foreign table github.events (
+  id text,
+  type text,
+  actor jsonb,
+  repo jsonb,
+  payload jsonb,
+  public boolean,
+  created_at timestamp
+)
+  server example_server
+  options (
+    object 'events',
+    rowid_column 'id'
+  );
+```
+
+> [!NOTE]
+> The foreign server option `fdw_package_checksum` is not needed for local development.
+
+Now you can edit and save `src/lib.rs` file, then query the foreign table like below to see result:
+
+```sql
+select
+  id,
+  type,
+  actor->>'login' as login,
+  repo->>'name' as repo,
+  created_at
+from
+  github.events
+limit 5;
+```
 
 ## Considerations
 
