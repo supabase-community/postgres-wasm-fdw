@@ -203,7 +203,7 @@ limit 5;
 
 ### Set up
 
-To develop Wasm FDW locally with Supabase, [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started) is needed, check its docs for more installation details. After the CLI is installed, start the Supabase services:
+To develop Wasm FDW locally with Supabase, [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started)(version >= 1.187.10) is needed, check its docs for more installation details. After the CLI is installed, start the Supabase services:
 
 ```bash
 supabase start
@@ -223,6 +223,12 @@ And then run the script to build the Wasm FDW package and copy it to Supabase da
 Visit SQL Editor at http://127.0.0.1:54323/project/default/sql/1, create foreign server and foreign table like below,
 
 ```sql
+create extension if not exists wrappers with schema extensions;
+
+create foreign data wrapper wasm_wrapper
+  handler wasm_fdw_handler
+  validator wasm_fdw_validator;
+
 create server example_server
   foreign data wrapper wasm_wrapper
   options (
