@@ -68,7 +68,7 @@ This project is a normal Rust library project, so we will assume you have instal
 2. Install the [WebAssembly Component Model subcommand](https://github.com/bytecodealliance/cargo-component):
 
    ```bash
-   cargo install cargo-component --version 0.13.2
+   cargo install cargo-component --locked --version 0.13.2
    ```
 
 ### Implement the foreign data wrapper logic
