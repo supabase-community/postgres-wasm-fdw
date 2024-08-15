@@ -106,7 +106,7 @@ jobs:
               rowid_column 'id'
             );
 
-          For more details, please visit https://github.com/supabase-community/wasm-fdw-example.
+          For more details, please visit https://fdw.dev.
           EOF
 
       - name: Create release
